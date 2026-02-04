@@ -1,0 +1,89 @@
+{
+	"name": "@treeviz/familysearch-catalog-sdk",
+	"version": "1.0.0",
+	"description": "TypeScript SDK for FamilySearch Catalog and Places APIs - Parish records, coverage periods, and place resolution",
+	"type": "module",
+	"main": "./dist/index.js",
+	"module": "./dist/index.js",
+	"types": "./dist/index.d.ts",
+	"exports": {
+		".": {
+			"types": "./dist/index.d.ts",
+			"import": "./dist/index.js",
+			"require": "./dist/index.cjs"
+		},
+		"./client": {
+			"types": "./dist/client/index.d.ts",
+			"import": "./dist/client/index.js",
+			"require": "./dist/client/index.cjs"
+		},
+		"./places": {
+			"types": "./dist/places/index.d.ts",
+			"import": "./dist/places/index.js",
+			"require": "./dist/places/index.cjs"
+		},
+		"./catalog": {
+			"types": "./dist/catalog/index.d.ts",
+			"import": "./dist/catalog/index.js",
+			"require": "./dist/catalog/index.cjs"
+		},
+		"./parser": {
+			"types": "./dist/parser/index.d.ts",
+			"import": "./dist/parser/index.js",
+			"require": "./dist/parser/index.cjs"
+		},
+		"./cache": {
+			"types": "./dist/cache/index.d.ts",
+			"import": "./dist/cache/index.js",
+			"require": "./dist/cache/index.cjs"
+		}
+	},
+	"files": [
+		"dist",
+		"README.md",
+		"LICENSE"
+	],
+	"scripts": {
+		"build": "tsup",
+		"dev": "tsup --watch",
+		"test": "vitest run",
+		"test:watch": "vitest",
+		"lint": "tsc --noEmit",
+		"clean": "rm -rf dist",
+		"prepublishOnly": "npm run build",
+		"example:cli": "node --loader ts-node/esm examples/cli-search.ts"
+	},
+	"keywords": [
+		"familysearch",
+		"genealogy",
+		"catalog",
+		"places",
+		"api",
+		"sdk",
+		"parish",
+		"records",
+		"typescript"
+	],
+	"author": "idavidka and @treeviz contributors",
+	"license": "MIT",
+	"repository": {
+		"type": "git",
+		"url": "git@github.com:idavidka/familysearch-catalog-sdk.git"
+	},
+	"homepage": "https://github.com/idavidka/familysearch-catalog-sdk#readme",
+	"bugs": {
+		"url": "https://github.com/idavidka/familysearch-catalog-sdk/issues"
+	},
+	"dependencies": {
+		"@treeviz/familysearch-sdk": "^2.0.5"
+	},
+	"devDependencies": {
+		"@types/node": "^25.0.9",
+		"tsup": "^8.0.0",
+		"typescript": "^5.1.6",
+		"vitest": "^3.0.7"
+	},
+	"engines": {
+		"node": ">=20.0.0"
+	}
+}

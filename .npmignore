@@ -1,0 +1,11 @@
+# Ignore for npm publish
+src/
+tsconfig.json
+tsup.config.ts
+vitest.config.ts
+.gitignore
+.eslintrc.json
+*.test.ts
+__tests__/
+coverage/
+examples/

@@ -74,10 +74,11 @@
 	"bugs": {
 		"url": "https://github.com/idavidka/familysearch-catalog-sdk/issues"
 	},
-	"dependencies": {
+	"peerDependencies": {
 		"@treeviz/familysearch-sdk": "^2.0.5"
 	},
 	"devDependencies": {
+		"@treeviz/familysearch-sdk": "^2.0.5",
 		"@types/node": "^25.0.9",
 		"tsup": "^8.0.0",
 		"typescript": "^5.1.6",

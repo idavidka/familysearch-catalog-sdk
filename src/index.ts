@@ -250,6 +250,7 @@ export type {
 // Export URL generation utilities
 export {
 	generateAuthorSearchUrl,
+	generateAuthorNameSearchUrl,
 	generateSubjectSearchUrl,
 	generateCatalogSearchUrl,
 } from "./utils/url-generator";

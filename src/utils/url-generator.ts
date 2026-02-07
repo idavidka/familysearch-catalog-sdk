@@ -31,6 +31,27 @@ export function generateAuthorSearchUrl(
 }
 
 /**
+ * Generate a FamilySearch Catalog search URL by author name
+ *
+ * @param authorName - The author name to search for
+ * @param count - Number of results to return (default: 20)
+ * @returns FamilySearch Catalog search URL
+ *
+ * @example
+ * ```typescript
+ * const url = generateAuthorNameSearchUrl("Magyar Országos Levéltár");
+ * // Returns: "https://www.familysearch.org/search/catalog/results?count=20&q.author=Magyar%20Orsz%C3%A1gos%20Lev%C3%A9lt%C3%A1r"
+ * ```
+ */
+export function generateAuthorNameSearchUrl(
+	authorName: string,
+	count: number = 20
+): string {
+	const encodedAuthor = encodeURIComponent(authorName);
+	return `${CATALOG_SEARCH_BASE_URL}?count=${count}&q.author=${encodedAuthor}`;
+}
+
+/**
  * Generate a FamilySearch Catalog search URL by subject
  *
  * @param subject - The subject to search for
@@ -40,7 +61,7 @@ export function generateAuthorSearchUrl(
  * @example
  * ```typescript
  * const url = generateSubjectSearchUrl("Református Egyház");
- * // Returns: "https://www.familysearch.org/search/catalog/results?count=20&query=%2Bsubject%3A%22Reform%C3%A1tus+Egyh%C3%A1z%22"
+ * // Returns: "https://www.familysearch.org/search/catalog/results?count=20&q.subject%3A%22Reform%C3%A1tus+Egyh%C3%A1z%22"
  * ```
  */
 export function generateSubjectSearchUrl(
@@ -48,7 +69,7 @@ export function generateSubjectSearchUrl(
 	count: number = 20
 ): string {
 	const encodedSubject = encodeURIComponent(subject);
-	return `${CATALOG_SEARCH_BASE_URL}?count=${count}&query=%2Bsubject%3A%22${encodedSubject}%22`;
+	return `${CATALOG_SEARCH_BASE_URL}?count=${count}&q.subject%3A%22${encodedSubject}%22`;
 }
 
 /**
@@ -56,6 +77,7 @@ export function generateSubjectSearchUrl(
  *
  * @param options - Search options
  * @param options.authorId - Optional author ID to search for (preferred)
+ * @param options.authorName - Optional author name to search for (if no authorId)
  * @param options.subject - Optional subject to search for (fallback)
  * @param options.count - Number of results to return (default: 20)
  * @returns FamilySearch Catalog search URL
@@ -65,24 +87,33 @@ export function generateSubjectSearchUrl(
  * // With authorId (preferred)
  * const url1 = generateCatalogSearchUrl({ authorId: 150255802 });
  *
+ * // With authorName (if no authorId)
+ * const url2 = generateCatalogSearchUrl({ authorName: "Magyar Országos Levéltár" });
+ *
  * // Fallback to subject
- * const url2 = generateCatalogSearchUrl({ subject: "Református Egyház" });
+ * const url3 = generateCatalogSearchUrl({ subject: "Református Egyház" });
  * ```
  */
 export function generateCatalogSearchUrl(options: {
 	authorId?: number;
+	authorName?: string;
 	subject?: string;
 	count?: number;
 }): string {
-	const { authorId, subject, count = 20 } = options;
+	const { authorId, authorName, subject, count = 20 } = options;
 
 	if (authorId !== undefined) {
 		return generateAuthorSearchUrl(authorId, count);
+	}
+
+	if (authorName) {
+		return generateAuthorNameSearchUrl(authorName, count);
 	}
 
 	if (subject) {
 		return generateSubjectSearchUrl(subject, count);
 	}
 
-	throw new Error("Either authorId or subject must be provided");
+	throw new Error("Either authorId, authorName, or subject must be provided");
 }
+

@@ -216,6 +216,111 @@ export interface CatalogServiceRecord {
 	parish?: string;
 	/** Extracted religion/denomination */
 	religion?: string;
+	/** Religion/church author ID from Koha metadata (for building search links) */
+	religionAuthorId?: number;
+	/** Extended metadata from Koha item (if fetched) */
+	kohaMetadata?: CatalogItemMetadata;
+}
+
+/** Catalog item metadata from /service/search/catalog/item/koha:ID endpoint */
+export interface CatalogItemMetadata {
+	/** Author information with IDs */
+	authors?: Array<{
+		authorId: number;
+		fullName: string;
+		surname: string;
+		type: string;
+	}>;
+	/** Film notes with detailed information */
+	filmNotes?: Array<{
+		filmno: string;
+		digitalFilmNo?: string;
+		text: string;
+		copyLocation?: string;
+		fsIndexed?: string;
+		inclusiveDates?: string;
+	}>;
+	/** Cross-references to other collections */
+	xrefs?: Array<{
+		linkType: string;
+		title: string;
+		titleno: string;
+		inclusiveDates?: string;
+	}>;
+	/** Notes (summary, location, links, etc.) */
+	notes?: Array<{
+		type: string;
+		text: string;
+		seq: number;
+	}>;
+	/** Subject information */
+	subjects?: Array<{
+		subjectno: number;
+		text: string;
+		type: string;
+	}>;
+}
+
+/** Response from Koha item endpoint */
+export interface CatalogItemResponse {
+	source: {
+		author?: Array<{
+			identification?: string;
+			authorno: number;
+			givenname?: string;
+			surname: string;
+			fullname: string;
+			type: string;
+			display_text: string;
+			seq: number;
+		}>;
+		film_note?: {
+			geo_collection?: string;
+			fs_indexed_film_number?: string;
+			digital_film_no?: string;
+			copy_location_ex?: {
+				copy_location_id: number;
+				copy_location_name: string;
+			};
+			type: string;
+			filmno: string;
+			digital_film_rights?: string;
+			location_id?: number;
+			record_type?: string;
+			shelf?: string;
+			volume?: string;
+			copy_location?: string;
+			item_image_start_no?: string;
+			location?: string;
+			text: string;
+			fs_indexed?: string;
+			inclusive_dates?: string;
+			items?: string;
+			seq: number;
+		};
+		xref?: {
+			link_type: string;
+			author_name?: string;
+			subtitle?: string;
+			inclusive_dates?: string;
+			title: string;
+			titleno: string;
+		};
+		note?: Array<{
+			note_link?: {
+				text: string;
+			};
+			text: string;
+			type: string;
+			seq: number;
+		}>;
+		subject?: {
+			subjectno: number;
+			text: string;
+			type: string;
+			seq: number;
+		};
+	};
 }
 
 /**

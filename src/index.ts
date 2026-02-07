@@ -237,6 +237,8 @@ export type {
 	CatalogServiceSearchResponse,
 	CatalogServiceRecord,
 	CatalogServiceMetadata,
+	CatalogItemResponse,
+	CatalogItemMetadata,
 } from "./types/index";
 
 export type {
@@ -244,3 +246,10 @@ export type {
 	ChurchPattern,
 	ParishPattern,
 } from "./catalog/religion-config";
+
+// Export URL generation utilities
+export {
+	generateAuthorSearchUrl,
+	generateSubjectSearchUrl,
+	generateCatalogSearchUrl,
+} from "./utils/url-generator";

@@ -8,6 +8,7 @@
  */
 
 import type { CatalogPlacesClient } from "../client/index";
+import * as Parser from "../parser/index";
 import type {
 	CatalogSearchResult,
 	CoveragePeriod,
@@ -15,6 +16,8 @@ import type {
 	CatalogServiceSearchResponse,
 	CatalogServiceRecord,
 	CatalogServiceMetadata,
+	CatalogItemResponse,
+	CatalogItemMetadata,
 } from "../types/index";
 import type {
 	ReligionTranslations,
@@ -121,7 +124,9 @@ export class CatalogAPI {
 				const description = entry.content?.gedcomx?.description || "";
 
 				// Extract years from title or description
-				const years = this.extractYears(title + " " + description);
+				const years = Parser.extractYearRange(
+					title + " " + description
+				);
 
 				results.push({
 					id: entry.id || "",
@@ -178,7 +183,7 @@ export class CatalogAPI {
 			const author =
 				response.content?.gedcomx?.attribution?.creator?.name || "";
 			const description = response.content?.gedcomx?.description || "";
-			const years = this.extractYears(title + " " + description);
+			const years = Parser.extractYearRange(title + " " + description);
 
 			return {
 				id: recordId,
@@ -213,7 +218,7 @@ export class CatalogAPI {
 		const originalTexts: string[] = [];
 
 		for (const record of records) {
-			const years = this.parseYearRange(record.coverageYears);
+			const years = Parser.parseDateRange(record.coverageYears);
 			if (years) {
 				minYear = Math.min(minYear, years.start);
 				maxYear = Math.max(maxYear, years.end);
@@ -259,46 +264,6 @@ export class CatalogAPI {
 		}
 
 		return parishes;
-	}
-
-	/**
-	 * Extract year range from text (e.g., "1730-1895")
-	 */
-	private extractYears(text: string): string {
-		const yearRangeMatch = text.match(/(\d{4})\s*[-–]\s*(\d{4})/);
-		if (yearRangeMatch) {
-			return `${yearRangeMatch[1]}-${yearRangeMatch[2]}`;
-		}
-
-		const singleYearMatch = text.match(/(\d{4})/);
-		if (singleYearMatch) {
-			return singleYearMatch[1];
-		}
-
-		return "";
-	}
-
-	/**
-	 * Parse year range string into start and end years
-	 */
-	private parseYearRange(
-		yearString: string
-	): { start: number; end: number } | null {
-		const rangeMatch = yearString.match(/(\d{4})\s*[-–]\s*(\d{4})/);
-		if (rangeMatch) {
-			return {
-				start: parseInt(rangeMatch[1], 10),
-				end: parseInt(rangeMatch[2], 10),
-			};
-		}
-
-		const singleMatch = yearString.match(/(\d{4})/);
-		if (singleMatch) {
-			const year = parseInt(singleMatch[1], 10);
-			return { start: year, end: year };
-		}
-
-		return null;
 	}
 
 	/**
@@ -371,7 +336,7 @@ export class CatalogAPI {
 
 				if (detailResponse && detailResponse.searchHits) {
 					for (const detailHit of detailResponse.searchHits) {
-						const record = this.parseCatalogServiceRecord(
+						const record = await this.parseCatalogServiceRecord(
 							detailHit.metadataHit.metadata
 						);
 						allRecords.push(record);
@@ -391,9 +356,9 @@ export class CatalogAPI {
 	/**
 	 * Parse CatalogServiceMetadata into CatalogServiceRecord
 	 */
-	private parseCatalogServiceRecord(
+	private async parseCatalogServiceRecord(
 		metadata: CatalogServiceMetadata
-	): CatalogServiceRecord {
+	): Promise<CatalogServiceRecord> {
 		const title = metadata.title[0]?.value || "";
 		const creators = metadata.creator || [];
 		const subjects = metadata.subject || [];
@@ -406,7 +371,7 @@ export class CatalogAPI {
 		const id = kohaMatch ? kohaMatch[1] : identifierValue;
 
 		// Extract coverage years from title
-		const coverageYears = this.extractYears(title);
+		const coverageYears = Parser.extractYearRange(title);
 
 		// Extract parish and religion from creators
 		const { parish, religion } = this.extractParishAndReligion(creators);
@@ -415,6 +380,25 @@ export class CatalogAPI {
 		const url = id
 			? `${this.client.getWebBaseUrl()}/search/catalog/koha:${id}`
 			: "";
+
+		// Fetch detailed Koha metadata if this is a Koha record
+		let kohaMetadata;
+		let religionAuthorId;
+		if (kohaMatch && kohaMatch[1]) {
+			const kohaData = await this.client.getCatalogItem(kohaMatch[1]);
+			if (kohaData) {
+				kohaMetadata = this.parseKohaMetadata(kohaData);
+
+				// Find the church/parish author ID (type: "Author", not "Added Author")
+				// This is used for religion badge links
+				const churchAuthor = kohaMetadata.authors?.find(
+					(author) => author.type === "Author"
+				);
+				if (churchAuthor) {
+					religionAuthorId = churchAuthor.authorId;
+				}
+			}
+		}
 
 		return {
 			id,
@@ -426,6 +410,76 @@ export class CatalogAPI {
 			url,
 			parish,
 			religion,
+			religionAuthorId,
+			kohaMetadata,
+		};
+	}
+
+	/**
+	 * Parse Koha item response into CatalogItemMetadata
+	 * Extracts author IDs, film notes, cross-references, notes, and subjects
+	 */
+	private parseKohaMetadata(kohaData: unknown): CatalogItemMetadata {
+		const data = kohaData as CatalogItemResponse;
+
+		// Extract authors with IDs from source.author array
+		const authors = (data?.source?.author || []).map((author) => ({
+			authorId: author.authorno,
+			fullName: author.fullname,
+			surname: author.surname,
+			type: author.type,
+		}));
+
+		// Extract film notes from source.film_note (singular object)
+		const filmNotes = data?.source?.film_note
+			? [
+					{
+						filmno: data.source.film_note.filmno,
+						digitalFilmNo: data.source.film_note.digital_film_no,
+						text: data.source.film_note.text,
+						copyLocation: data.source.film_note.copy_location,
+						fsIndexed: data.source.film_note.fs_indexed,
+						inclusiveDates: data.source.film_note.inclusive_dates,
+					},
+				]
+			: [];
+
+		// Extract cross-references from source.xref (singular object)
+		const xrefs = data?.source?.xref
+			? [
+					{
+						linkType: data.source.xref.link_type,
+						title: data.source.xref.title,
+						titleno: data.source.xref.titleno,
+						inclusiveDates: data.source.xref.inclusive_dates,
+					},
+				]
+			: [];
+
+		// Extract notes from source.note array
+		const notes = (data?.source?.note || []).map((note) => ({
+			type: note.type,
+			text: note.text,
+			seq: note.seq,
+		}));
+
+		// Extract subjects from source.subject (singular object)
+		const subjects = data?.source?.subject
+			? [
+					{
+						subjectno: data.source.subject.subjectno,
+						text: data.source.subject.text,
+						type: data.source.subject.type,
+					},
+				]
+			: [];
+
+		return {
+			authors,
+			filmNotes,
+			xrefs,
+			notes,
+			subjects,
 		};
 	}
 

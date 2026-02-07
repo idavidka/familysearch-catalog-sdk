@@ -11,7 +11,11 @@
 
 import { FamilySearchSDK } from "@treeviz/familysearch-sdk";
 import { MemoryCache } from "../cache/index";
-import type { Cache, CatalogPlacesClientConfig } from "../types/index";
+import type {
+	Cache,
+	CatalogPlacesClientConfig,
+	CatalogItemResponse,
+} from "../types/index";
 import { getMockCatalogResponse } from "./mock-catalog-data";
 
 /**
@@ -318,7 +322,6 @@ export class CatalogPlacesClient {
 		try {
 			const headers: HeadersInit = {
 				Accept: "application/json",
-				"User-Agent": "TreevizBot/1.0",
 			};
 
 			// Add cookie if available
@@ -356,6 +359,47 @@ export class CatalogPlacesClient {
 	 */
 	setSessionCookie(cookie: string): void {
 		this.config.sessionCookie = cookie;
+	}
+
+	/**
+	 * Fetch detailed catalog item metadata by Koha ID
+	 *
+	 * @param kohaId The Koha ID (numeric ID without "koha:" prefix)
+	 * @param useCache Whether to use cache (default: true)
+	 * @returns Catalog item metadata or null if not found
+	 *
+	 * @example
+	 * ```typescript
+	 * const item = await client.getCatalogItem("91636");
+	 * console.log(item.source.author); // Authors with IDs
+	 * ```
+	 */
+	async getCatalogItem<T = CatalogItemResponse>(
+		kohaId: string,
+		useCache = true
+	): Promise<T | null> {
+		const path = `/service/search/catalog/item/koha:${kohaId}`;
+
+		// Check if we're in mock mode
+		if (this.config.debug) {
+			const mockResponse = getMockCatalogResponse<T>(path, { kohaId });
+			if (mockResponse) {
+				return mockResponse;
+			}
+		}
+
+		try {
+			const result = await this.getCatalogService<T>(path, {}, useCache);
+			return result ?? null;
+		} catch (error) {
+			if (this.config.debug) {
+				console.error(
+					`[CatalogItem] Failed to fetch koha:${kohaId}:`,
+					error
+				);
+			}
+			return null;
+		}
 	}
 
 	/**

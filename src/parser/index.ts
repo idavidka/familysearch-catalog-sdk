@@ -1,6 +1,6 @@
 /**
  * Parser utilities for extracting information from catalog records
- * 
+ *
  * Provides utilities for:
  * - Parish name extraction
  * - Date range parsing
@@ -10,9 +10,9 @@
 
 /**
  * Extract parish name from catalog title
- * 
+ *
  * @param title Catalog record title
- * 
+ *
  * @example
  * ```typescript
  * const parish = extractParishName("Roman Catholic Parish of Nagymaros, 1730-1895");
@@ -39,9 +39,9 @@ export function extractParishName(title: string): string | null {
 
 /**
  * Extract registry type from title
- * 
+ *
  * @param title Catalog record title
- * 
+ *
  * @example
  * ```typescript
  * const type = extractRegistryType("Roman Catholic Parish of Nagymaros");
@@ -73,15 +73,15 @@ export function extractRegistryType(title: string): string | null {
 
 /**
  * Parse date range from text
- * 
+ *
  * Supports formats like:
  * - "1730-1895"
  * - "1730 - 1895"
  * - "1730–1895"
  * - "1730"
- * 
+ *
  * @param text Text containing date range
- * 
+ *
  * @example
  * ```typescript
  * const range = parseDateRange("Records from 1730-1895");
@@ -111,10 +111,32 @@ export function parseDateRange(
 }
 
 /**
+ * Extract year range as string from text
+ *
+ * Convenience function that extracts years and returns as formatted string.
+ *
+ * @param text Text containing date range
+ * @returns Year range string (e.g., "1730-1895") or empty string if no years found
+ *
+ * @example
+ * ```typescript
+ * const years = extractYearRange("Parish records 1730-1895");
+ * console.log(years); // "1730-1895"
+ * ```
+ */
+export function extractYearRange(text: string): string {
+	const range = parseDateRange(text);
+	if (!range) {
+		return "";
+	}
+	return formatYearRange(range.start, range.end);
+}
+
+/**
  * Extract author name from attribution text
- * 
+ *
  * @param attribution Attribution text
- * 
+ *
  * @example
  * ```typescript
  * const author = extractAuthor("Created by John Doe");
@@ -144,10 +166,10 @@ export function extractAuthor(attribution: string): string | null {
 
 /**
  * Format year range as string
- * 
+ *
  * @param start Start year
  * @param end End year
- * 
+ *
  * @example
  * ```typescript
  * const formatted = formatYearRange(1730, 1895);
@@ -163,11 +185,11 @@ export function formatYearRange(start: number, end: number): string {
 
 /**
  * Normalize place name for comparison
- * 
+ *
  * Removes accents, converts to lowercase, removes punctuation
- * 
+ *
  * @param placeName Place name
- * 
+ *
  * @example
  * ```typescript
  * const normalized = normalizePlaceName("Kismarós");
@@ -185,7 +207,7 @@ export function normalizePlaceName(placeName: string): string {
 
 /**
  * Calculate similarity between two strings using Levenshtein distance
- * 
+ *
  * @param str1 First string
  * @param str2 Second string
  * @returns Similarity score (0-1)

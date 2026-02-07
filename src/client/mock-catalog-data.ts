@@ -1,3 +1,4 @@
+/* eslint-disable no-useless-escape */
 /**
  * Mock data for FamilySearch Catalog Service API
  * Based on real API responses from fs-cookie-debug file

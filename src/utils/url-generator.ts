@@ -61,7 +61,7 @@ export function generateAuthorNameSearchUrl(
  * @example
  * ```typescript
  * const url = generateSubjectSearchUrl("Református Egyház");
- * // Returns: "https://www.familysearch.org/search/catalog/results?count=20&q.subject%3A%22Reform%C3%A1tus+Egyh%C3%A1z%22"
+ * // Returns: "https://www.familysearch.org/search/catalog/results?count=20&query%2Bsubject%3A%22Reform%C3%A1tus+Egyh%C3%A1z%22"
  * ```
  */
 export function generateSubjectSearchUrl(
@@ -69,7 +69,7 @@ export function generateSubjectSearchUrl(
 	count: number = 20
 ): string {
 	const encodedSubject = encodeURIComponent(subject);
-	return `${CATALOG_SEARCH_BASE_URL}?count=${count}&q.subject%3A%22${encodedSubject}%22`;
+	return `${CATALOG_SEARCH_BASE_URL}?count=${count}&query=%2Bsubject%3A%22${encodedSubject}%22`;
 }
 
 /**
@@ -116,4 +116,3 @@ export function generateCatalogSearchUrl(options: {
 
 	throw new Error("Either authorId, authorName, or subject must be provided");
 }
-

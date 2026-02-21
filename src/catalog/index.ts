@@ -365,21 +365,45 @@ export class CatalogAPI {
 		const repositories =
 			metadata.repositoryCalls?.map((r) => r.title) || [];
 
-		// Extract ID from identifier
+		// Extract ID from identifier and handle different catalog types
 		const identifierValue = metadata.identifier.value;
 		const kohaMatch = identifierValue.match(/koha:(\d+)/);
-		const id = kohaMatch ? kohaMatch[1] : identifierValue;
+		const olibMatch = identifierValue.match(/olib:(\d+)/);
+		
+		// Determine ID and URL based on catalog type
+		let id: string;
+		let url: string;
+		
+		if (kohaMatch) {
+			// Koha record: extract numeric ID
+			id = kohaMatch[1];
+			url = `${this.client.getWebBaseUrl()}/search/catalog/koha:${id}`;
+		} else if (olibMatch) {
+			// Olib record: extract numeric ID
+			id = olibMatch[1];
+			url = `${this.client.getWebBaseUrl()}/service/search/catalog/item/olib:${id}`;
+		} else if (identifierValue.startsWith('http')) {
+			// Full URL provided (e.g., olib records sometimes return full URL)
+			// Extract olib ID from URL if present
+			const urlOlibMatch = identifierValue.match(/olib:(\d+)/);
+			if (urlOlibMatch) {
+				id = urlOlibMatch[1];
+				url = identifierValue; // Use the full URL as-is
+			} else {
+				id = identifierValue;
+				url = identifierValue;
+			}
+		} else {
+			// Unknown format: use as-is
+			id = identifierValue;
+			url = identifierValue ? `${this.client.getWebBaseUrl()}/search/catalog/${identifierValue}` : "";
+		}
 
 		// Extract coverage years from title
 		const coverageYears = Parser.extractYearRange(title);
 
 		// Extract parish and religion from creators
 		const { parish, religion } = this.extractParishAndReligion(creators);
-
-		// Build URL
-		const url = id
-			? `${this.client.getWebBaseUrl()}/search/catalog/koha:${id}`
-			: "";
 
 		// Fetch detailed Koha metadata if this is a Koha record
 		let kohaMetadata;

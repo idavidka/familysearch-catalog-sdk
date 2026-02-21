@@ -10,6 +10,7 @@
  */
 
 import { FamilySearchSDK } from "@treeviz/familysearch-sdk";
+import axios from "axios";
 import { MemoryCache } from "../cache/index";
 import type {
 	Cache,
@@ -301,46 +302,34 @@ export class CatalogPlacesClient {
 
 		// Build URL with query params
 		const baseUrl = "https://www.familysearch.org";
-		let fullPath = path;
-		if (params && Object.keys(params).length > 0) {
-			const queryString = Object.entries(params)
-				.map(
-					([key, value]) =>
-						`${encodeURIComponent(key)}=${encodeURIComponent(String(value))}`
-				)
-				.join("&");
-			fullPath = `${path}?${queryString}`;
-		}
-
-		const fullUrl = `${baseUrl}${fullPath}`;
+		const fullUrl = `${baseUrl}${path}`;
 
 		if (this.config.debug) {
-			console.log(`[CatalogService] GET ${fullUrl}`);
+			console.log(`[CatalogService] GET ${fullUrl}`, params);
 		}
 
-		// Make request with session cookie
+		// Make request with session cookie using axios
 		try {
-			const headers: HeadersInit = {
+			const headers: Record<string, string> = {
 				Accept: "application/json",
+				"Accept-Language": "hu-HU,hu;q=0.9,en-US;q=0.8,en;q=0.7",
+				Referer: "https://www.familysearch.org/hu/search/catalog/",
+				"User-Agent":
+					"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36",
 			};
 
-			// Add cookie if available
+			// Add cookie if available (axios supports Cookie header in Node.js)
 			if (this.config.sessionCookie) {
 				headers.Cookie = this.config.sessionCookie;
 			}
 
-			const response = await fetch(fullUrl, {
-				method: "GET",
+			const response = await axios.get<T>(fullUrl, {
+				params,
 				headers,
+				timeout: 30000,
 			});
 
-			if (!response.ok) {
-				throw new Error(
-					`HTTP ${response.status}: ${response.statusText}`
-				);
-			}
-
-			const data = (await response.json()) as T;
+			const data = response.data;
 
 			// Cache result
 			if (useCache && this.cache && data) {
@@ -349,6 +338,15 @@ export class CatalogPlacesClient {
 
 			return data;
 		} catch (error) {
+			if (axios.isAxiosError(error)) {
+				const statusCode = error.response?.status || 0;
+				const statusText = error.response?.statusText || "Unknown";
+				console.error(
+					"[CatalogService] Request failed:",
+					`HTTP ${statusCode}: ${statusText}`
+				);
+				throw new Error(`HTTP ${statusCode}: ${statusText}`);
+			}
 			console.error("[CatalogService] Request failed:", error);
 			throw error;
 		}

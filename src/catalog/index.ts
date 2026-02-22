@@ -549,12 +549,102 @@ export class CatalogAPI {
 
 		return result;
 	}
+
+	/**
+	 * Get related places for a given place
+	 * Returns mother parishes, nearby parishes, and other ecclesiastical jurisdictions
+	 * 
+	 * @param placeId FamilySearch place ID
+	 * @returns Related places with relationship types and notes
+	 * 
+	 * @example
+	 * ```typescript
+	 * const related = await catalog.getRelatedPlaces("12345");
+	 * console.log(related.relatedPlaces[0].name); // "Verőce, Pest, Hungary"
+	 * console.log(related.relatedPlaces[0].relationship); // "mother-parish"
+	 * ```
+	 */
+	async getRelatedPlaces(placeId: string): Promise<import("../types/index").RelatedPlacesResponse> {
+		try {
+			// Call internal Catalog API endpoint for related places
+			const response = await this.client.getCatalog<{
+				placeId?: string;
+				placeName?: string;
+				relatedPlaces?: Array<{
+					placeId?: string;
+					name?: string;
+					fullName?: string;
+					relationship?: string;
+					note?: string;
+					distance?: number;
+					religion?: string;
+				}>;
+			}>(`/service/records/catalog/places/${placeId}/related`);
+
+			// Handle undefined response
+			if (!response) {
+				return {
+					placeId,
+					placeName: "",
+					relatedPlaces: [],
+				};
+			}
+
+			// Parse response
+			const relatedPlaces: import("../types/index").RelatedPlace[] = (response.relatedPlaces || [])
+				.map((place) => ({
+					placeId: place.placeId || "",
+					name: place.name || "",
+					fullName: place.fullName,
+					relationship: this.parseRelationshipType(place.relationship),
+					note: place.note,
+					distance: place.distance,
+					religion: place.religion,
+				}))
+				.filter((place) => place.placeId && place.name); // Filter out invalid entries
+
+			return {
+				placeId: response.placeId || placeId,
+				placeName: response.placeName || "",
+				relatedPlaces,
+			};
+		} catch (error) {
+			// If endpoint doesn't exist or returns 404, return empty result
+			console.warn(`Failed to fetch related places for ${placeId}:`, error);
+			return {
+				placeId,
+				placeName: "",
+				relatedPlaces: [],
+			};
+		}
+	}
+
+	/**
+	 * Parse relationship type string to enum value
+	 */
+	private parseRelationshipType(
+		relationship?: string
+	): import("../types/index").RelatedPlace["relationship"] {
+		if (!relationship) return "unknown";
+
+		const lower = relationship.toLowerCase();
+		if (lower.includes("mother") || lower.includes("parent")) return "mother-parish";
+		if (lower.includes("subordinate") || lower.includes("child")) return "subordinate";
+		if (lower.includes("nearby") || lower.includes("neighbor")) return "nearby";
+		if (lower.includes("ecclesiastical") || lower.includes("church")) return "ecclesiastical-jurisdiction";
+		if (lower.includes("civil") || lower.includes("administrative")) return "civil-jurisdiction";
+		if (lower.includes("see") || lower.includes("also")) return "see-also";
+		
+		return "unknown";
+	}
 }
 
 export {
 	type CatalogSearchResult,
 	type CoveragePeriod,
 	type ParishInfo,
+	type RelatedPlace,
+	type RelatedPlacesResponse,
 } from "../types/index";
 export {
 	type ReligionTranslations,

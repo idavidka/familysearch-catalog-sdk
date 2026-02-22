@@ -143,6 +143,46 @@ export interface CatalogPlaceResult {
 }
 
 /**
+ * Related place information
+ * Used for finding mother parishes, nearby parishes, etc.
+ */
+export interface RelatedPlace {
+	/** Place ID */
+	placeId: string;
+	/** Place name */
+	name: string;
+	/** Full hierarchical name */
+	fullName?: string;
+	/** Relationship type */
+	relationship: 
+		| "mother-parish" 
+		| "subordinate" 
+		| "nearby" 
+		| "ecclesiastical-jurisdiction"
+		| "civil-jurisdiction"
+		| "see-also"
+		| "unknown";
+	/** Descriptive note about the relationship */
+	note?: string;
+	/** Distance in kilometers (if nearby) */
+	distance?: number;
+	/** Religion/denomination (if ecclesiastical) */
+	religion?: string;
+}
+
+/**
+ * Related places response
+ */
+export interface RelatedPlacesResponse {
+	/** Source place ID */
+	placeId: string;
+	/** Source place name */
+	placeName: string;
+	/** Related places */
+	relatedPlaces: RelatedPlace[];
+}
+
+/**
  * Catalog Service V3 API Response Types
  */
 

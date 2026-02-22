@@ -1,6 +1,6 @@
 {
 	"name": "@treeviz/familysearch-catalog-sdk",
-	"version": "1.0.6",
+	"version": "1.1.0-beta.1",
 	"description": "TypeScript SDK for FamilySearch Catalog and Places APIs - Parish records, coverage periods, and place resolution",
 	"type": "module",
 	"main": "./dist/index.js",
@@ -79,6 +79,7 @@
 	},
 	"devDependencies": {
 		"@treeviz/familysearch-sdk": "^2.0.5",
+		"@types/axios": "^0.9.36",
 		"@types/node": "^25.0.9",
 		"tsup": "^8.0.0",
 		"typescript": "^5.1.6",

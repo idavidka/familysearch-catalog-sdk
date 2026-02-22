@@ -416,7 +416,7 @@ export class CatalogAPI {
     // Fetch detailed metadata for Koha or Olib records
     let kohaMetadata;
     let religionAuthorId;
-    
+
     if (kohaMatch && kohaMatch[1]) {
       // Koha record: fetch koha metadata
       const kohaData = await this.client.getCatalogItem(kohaMatch[1]);
@@ -434,10 +434,13 @@ export class CatalogAPI {
       }
     } else if (olibMatch && olibMatch[1]) {
       // Olib record: fetch olib metadata (same structure as koha)
-      const olibData = await this.client.getCatalogItemByType("olib", olibMatch[1]);
+      const olibData = await this.client.getCatalogItemByType(
+        "olib",
+        olibMatch[1],
+      );
       if (olibData) {
         kohaMetadata = this.parseKohaMetadata(olibData); // Same parser works for olib
-        
+
         // Find the church/parish author ID for olib records too
         const churchAuthor = kohaMetadata.authors?.find(
           (author) => author.type === "Author",
@@ -478,12 +481,12 @@ export class CatalogAPI {
       surname?: string;
       type?: string;
     }> = [];
-    
+
     if (data?.source?.author) {
       const authorData = Array.isArray(data.source.author)
         ? data.source.author
         : [data.source.author];
-      
+
       authors = authorData.map((author) => ({
         authorId: author.authorno,
         fullName: author.fullname,
@@ -501,12 +504,12 @@ export class CatalogAPI {
       fsIndexed?: string;
       inclusiveDates?: string;
     }> = [];
-    
+
     if (data?.source?.film_note) {
       const filmNoteData = Array.isArray(data.source.film_note)
         ? data.source.film_note
         : [data.source.film_note];
-      
+
       filmNotes = filmNoteData.map((note) => ({
         filmno: note.filmno,
         digitalFilmNo: note.digital_film_no,

@@ -348,8 +348,9 @@ export class CatalogAPI {
 
   /**
    * Parse CatalogServiceMetadata into CatalogServiceRecord
+   * Made public to allow direct record parsing without subject grouping
    */
-  private async parseCatalogServiceRecord(
+  async parseCatalogServiceRecord(
     metadata: CatalogServiceMetadata,
   ): Promise<CatalogServiceRecord> {
     const title = metadata.title[0]?.value || "";

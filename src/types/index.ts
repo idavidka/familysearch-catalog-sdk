@@ -268,14 +268,14 @@ export interface CatalogItemMetadata {
 	authors?: Array<{
 		authorId: number;
 		fullName: string;
-		surname: string;
-		type: string;
+		surname?: string; // Optional for olib records
+		type?: string; // Optional for olib records
 	}>;
 	/** Film notes with detailed information */
 	filmNotes?: Array<{
-		filmno: string;
-		digitalFilmNo?: string;
-		text: string;
+		filmno?: string; // Optional for olib records
+		digitalFilmNo?: string | number; // Can be string or number
+		text?: string; // Optional for some records
 		copyLocation?: string;
 		fsIndexed?: string;
 		inclusiveDates?: string;

@@ -400,16 +400,32 @@ export class CatalogAPI {
     // Extract parish and religion from creators
     const { parish, religion } = this.extractParishAndReligion(creators);
 
-    // Fetch detailed Koha metadata if this is a Koha record
+    // Fetch detailed metadata for Koha or Olib records
     let kohaMetadata;
     let religionAuthorId;
+    
     if (kohaMatch && kohaMatch[1]) {
+      // Koha record: fetch koha metadata
       const kohaData = await this.client.getCatalogItem(kohaMatch[1]);
       if (kohaData) {
         kohaMetadata = this.parseKohaMetadata(kohaData);
 
         // Find the church/parish author ID (type: "Author", not "Added Author")
         // This is used for religion badge links
+        const churchAuthor = kohaMetadata.authors?.find(
+          (author) => author.type === "Author",
+        );
+        if (churchAuthor) {
+          religionAuthorId = churchAuthor.authorId;
+        }
+      }
+    } else if (olibMatch && olibMatch[1]) {
+      // Olib record: fetch olib metadata (same structure as koha)
+      const olibData = await this.client.getCatalogItemByType("olib", olibMatch[1]);
+      if (olibData) {
+        kohaMetadata = this.parseKohaMetadata(olibData); // Same parser works for olib
+        
+        // Find the church/parish author ID for olib records too
         const churchAuthor = kohaMetadata.authors?.find(
           (author) => author.type === "Author",
         );
@@ -435,33 +451,58 @@ export class CatalogAPI {
   }
 
   /**
-   * Parse Koha item response into CatalogItemMetadata
+   * Parse Koha/Olib item response into CatalogItemMetadata
    * Extracts author IDs, film notes, cross-references, notes, and subjects
+   * Works for both Koha and Olib response structures
    */
   private parseKohaMetadata(kohaData: unknown): CatalogItemMetadata {
     const data = kohaData as CatalogItemResponse;
 
-    // Extract authors with IDs from source.author array
-    const authors = (data?.source?.author || []).map((author) => ({
-      authorId: author.authorno,
-      fullName: author.fullname,
-      surname: author.surname,
-      type: author.type,
-    }));
+    // Extract authors with IDs from source.author (can be object or array)
+    let authors: Array<{
+      authorId: number;
+      fullName: string;
+      surname?: string;
+      type?: string;
+    }> = [];
+    
+    if (data?.source?.author) {
+      const authorData = Array.isArray(data.source.author)
+        ? data.source.author
+        : [data.source.author];
+      
+      authors = authorData.map((author) => ({
+        authorId: author.authorno,
+        fullName: author.fullname,
+        surname: author.surname,
+        type: author.type,
+      }));
+    }
 
-    // Extract film notes from source.film_note (singular object)
-    const filmNotes = data?.source?.film_note
-      ? [
-          {
-            filmno: data.source.film_note.filmno,
-            digitalFilmNo: data.source.film_note.digital_film_no,
-            text: data.source.film_note.text,
-            copyLocation: data.source.film_note.copy_location,
-            fsIndexed: data.source.film_note.fs_indexed,
-            inclusiveDates: data.source.film_note.inclusive_dates,
-          },
-        ]
-      : [];
+    // Extract film notes from source.film_note (can be object or array)
+    let filmNotes: Array<{
+      filmno?: string;
+      digitalFilmNo?: number;
+      text?: string;
+      copyLocation?: string;
+      fsIndexed?: string;
+      inclusiveDates?: string;
+    }> = [];
+    
+    if (data?.source?.film_note) {
+      const filmNoteData = Array.isArray(data.source.film_note)
+        ? data.source.film_note
+        : [data.source.film_note];
+      
+      filmNotes = filmNoteData.map((note) => ({
+        filmno: note.filmno,
+        digitalFilmNo: note.digital_film_no,
+        text: note.text,
+        copyLocation: note.copy_location,
+        fsIndexed: note.fs_indexed,
+        inclusiveDates: note.inclusive_dates,
+      }));
+    }
 
     // Extract cross-references from source.xref (singular object)
     const xrefs = data?.source?.xref

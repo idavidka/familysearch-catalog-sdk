@@ -376,11 +376,34 @@ export class CatalogPlacesClient {
 		kohaId: string,
 		useCache = true
 	): Promise<T | null> {
-		const path = `/service/search/catalog/item/koha:${kohaId}`;
+		return this.getCatalogItemByType<T>("koha", kohaId, useCache);
+	}
+
+	/**
+	 * Fetch detailed catalog item metadata by type and ID
+	 * Supports both "koha" and "olib" catalog types
+	 *
+	 * @param type Catalog type ("koha" or "olib")
+	 * @param itemId The item ID (numeric ID without type prefix)
+	 * @param useCache Whether to use cache (default: true)
+	 * @returns Catalog item metadata or null if not found
+	 *
+	 * @example
+	 * ```typescript
+	 * const kohaItem = await client.getCatalogItemByType("koha", "91636");
+	 * const olibItem = await client.getCatalogItemByType("olib", "2016172");
+	 * ```
+	 */
+	async getCatalogItemByType<T = CatalogItemResponse>(
+		type: "koha" | "olib",
+		itemId: string,
+		useCache = true
+	): Promise<T | null> {
+		const path = `/service/search/catalog/item/${type}:${itemId}`;
 
 		// Check if we're in mock mode
 		if (this.config.debug) {
-			const mockResponse = getMockCatalogResponse<T>(path, { kohaId });
+			const mockResponse = getMockCatalogResponse<T>(path, { [type + "Id"]: itemId });
 			if (mockResponse) {
 				return mockResponse;
 			}
@@ -392,7 +415,7 @@ export class CatalogPlacesClient {
 		} catch (error) {
 			if (this.config.debug) {
 				console.error(
-					`[CatalogItem] Failed to fetch koha:${kohaId}:`,
+					`[CatalogItem] Failed to fetch ${type}:${itemId}:`,
 					error
 				);
 			}

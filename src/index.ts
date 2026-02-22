@@ -18,6 +18,7 @@ import type {
 	PlaceSearchResult,
 	CatalogSearchResult,
 	CatalogServiceRecord,
+	CatalogServiceSearchResult,
 } from "./types/index";
 
 /**
@@ -183,11 +184,12 @@ export class FamilySearchCatalog {
 	 *
 	 * @param placeName Place name to search for
 	 * @param count Maximum number of results
+	 * @returns Catalog records with place metadata (placeSetId for related places)
 	 */
 	async searchCatalogService(
 		placeName: string,
 		count: number = 20
-	): Promise<CatalogServiceRecord[]> {
+	): Promise<CatalogServiceSearchResult> {
 		return this.catalog.searchCatalogService(placeName, { count });
 	}
 
@@ -236,6 +238,7 @@ export type {
 	CacheEntry,
 	CatalogServiceSearchResponse,
 	CatalogServiceRecord,
+	CatalogServiceSearchResult,
 	CatalogServiceMetadata,
 	CatalogItemResponse,
 	CatalogItemMetadata,

@@ -262,6 +262,16 @@ export interface CatalogServiceRecord {
 	kohaMetadata?: CatalogItemMetadata;
 }
 
+/** Result from searchCatalogService with place metadata */
+export interface CatalogServiceSearchResult {
+	/** Catalog records */
+	records: CatalogServiceRecord[];
+	/** Place Set ID (for related places) */
+	placeSetId?: string;
+	/** Place Rep ID */
+	placeRepId?: string;
+}
+
 /** Catalog item metadata from /service/search/catalog/item/koha:ID endpoint */
 export interface CatalogItemMetadata {
 	/** Author information with IDs */

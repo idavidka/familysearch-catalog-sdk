@@ -15,6 +15,7 @@ import type {
   ParishInfo,
   CatalogServiceSearchResponse,
   CatalogServiceRecord,
+  CatalogServiceSearchResult,
   CatalogServiceMetadata,
   CatalogItemResponse,
   CatalogItemMetadata,
@@ -274,7 +275,7 @@ export class CatalogAPI {
       count?: number;
       offset?: number;
     } = {},
-  ): Promise<CatalogServiceRecord[]> {
+  ): Promise<CatalogServiceSearchResult> {
     const count = options.count || 20;
     const offset = options.offset || 0;
 
@@ -300,8 +301,16 @@ export class CatalogAPI {
       !initialResponse.searchHits ||
       initialResponse.searchHits.length === 0
     ) {
-      return [];
+      return {
+        records: [],
+        placeSetId: initialResponse?.placeSetId,
+        placeRepId: initialResponse?.placeRepId,
+      };
     }
+
+    // Extract place metadata
+    const placeSetId = initialResponse.placeSetId;
+    const placeRepId = initialResponse.placeRepId;
 
     // Step 2: For each subject, fetch detailed records
     const allRecords: CatalogServiceRecord[] = [];
@@ -343,7 +352,11 @@ export class CatalogAPI {
       }
     }
 
-    return allRecords;
+    return {
+      records: allRecords,
+      placeSetId,
+      placeRepId,
+    };
   }
 
   /**

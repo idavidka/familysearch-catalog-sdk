@@ -19,6 +19,8 @@ import type {
   CatalogServiceMetadata,
   CatalogItemResponse,
   CatalogItemMetadata,
+  RelatedPlacesResponse,
+  RelatedPlace,
 } from "../types/index";
 import type {
   ReligionTranslations,
@@ -626,7 +628,7 @@ export class CatalogAPI {
    */
   async getRelatedPlaces(
     placeId: string,
-  ): Promise<import("../types/index").RelatedPlacesResponse> {
+  ): Promise<RelatedPlacesResponse> {
     try {
       // Call internal Catalog API endpoint for related places
       const response = await this.client.getCatalog<{
@@ -653,7 +655,7 @@ export class CatalogAPI {
       }
 
       // Parse response
-      const relatedPlaces: import("../types/index").RelatedPlace[] = (
+      const relatedPlaces: RelatedPlace[] = (
         response.relatedPlaces || []
       )
         .map((place) => ({
@@ -688,7 +690,7 @@ export class CatalogAPI {
    */
   private parseRelationshipType(
     relationship?: string,
-  ): import("../types/index").RelatedPlace["relationship"] {
+  ): RelatedPlace["relationship"] {
     if (!relationship) return "unknown";
 
     const lower = relationship.toLowerCase();

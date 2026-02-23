@@ -17,7 +17,6 @@ import type {
   CatalogSource,
   PlaceSearchResult,
   CatalogSearchResult,
-  CatalogServiceRecord,
   CatalogServiceSearchResult,
 } from "./types/index";
 

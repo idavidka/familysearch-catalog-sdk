@@ -50,13 +50,16 @@ export class PlacesAPI {
 		options: {
 			count?: number;
 			start?: number;
+			partial?: boolean;
 		} = {}
 	): Promise<PlaceSearchResult[]> {
 		// Build structured query string for FamilySearch Places API
 		// The API expects format: name:"place name" or partialName:"place name"
 		const structuredQuery = query.includes(":")
-			? query // Already structured (e.g., "name:szob" or "parentId:123")
-			: `name:"${query}"`; // Wrap in name:"..." format
+			? query // Already structured (e.g., "latitude:47.0 longitude:18.0 distance:10")
+			: options.partial
+				? `partialName:"${query}"` // Partial/fuzzy match
+				: `name:"${query}"`; // Exact name match
 
 		const params: Record<string, string | number> = {
 			q: structuredQuery,

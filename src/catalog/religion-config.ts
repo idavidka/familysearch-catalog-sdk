@@ -347,6 +347,39 @@ export const DEFAULT_RELIGION_TRANSLATIONS: ReligionTranslations[] = [
 		],
 	},
 	{
+		canonical: "Serbian Orthodox",
+		names: [
+			// English
+			"Serbian Orthodox",
+			// Hungarian
+			"Görögkeleti Szerb",
+			"Görög Keleti Szerb",
+			"Szerb Ortodox",
+			"Szerb Keleti",
+			// Serbian
+			"Srpska pravoslavna",
+			"Srpsko-pravoslavna",
+			"Pravoslavna srpska",
+			// Slovak
+			"Srbská pravoslávna",
+			// Romanian
+			"Ortodox sârb",
+			// German
+			"Serbisch-Orthodox",
+			"Serbisch-Orthodoxe",
+			// Croatian
+			"Srpska pravoslavna",
+			// Russian
+			"Сербская православная",
+			// French
+			"Orthodoxe serbe",
+			// Italian
+			"Ortodossa serba",
+			// Spanish
+			"Ortodoxa serbia",
+		],
+	},
+	{
 		canonical: "Jewish",
 		names: [
 			// English

@@ -22,7 +22,7 @@
 export function extractParishName(title: string): string | null {
 	// Pattern: "<Type> Parish of <Name>"
 	const parishMatch = title.match(
-		/(?:roman catholic|lutheran|reformed|evangelical|greek catholic|orthodox)\s+parish\s+of\s+([^,]+)/i
+		/(?:roman catholic|lutheran|reformed|evangelical|greek catholic|serbian orthodox|orthodox)\s+parish\s+of\s+([^,]+)/i
 	);
 	if (parishMatch) {
 		return parishMatch[1].trim();
@@ -55,6 +55,7 @@ export function extractRegistryType(title: string): string | null {
 		"Reformed",
 		"Evangelical",
 		"Greek Catholic",
+		"Serbian Orthodox",
 		"Orthodox",
 		"Jewish",
 		"Civil Registration",
